@@ -1,6 +1,6 @@
 # Extended Tic Tac Toe (5x5)
 
-A modern, extended version of Tic Tac Toe on a 5x5 grid — with support for:
+A modern, extended version of Tic Tac Toe on a 5x5 grid with support for:
 
 - 👥 Two players
 - 🤖 Bot opponent with AI (Minimax)
