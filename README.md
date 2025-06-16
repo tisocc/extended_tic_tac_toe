@@ -21,17 +21,6 @@ A modern, extended version of Tic Tac Toe on a 5x5 grid — with support for:
 - Clean 5x5 layout
 - Dynamic win detection
 - Score tracking
-- Interactive animations and sound
-
-
- ________      ___    ___      ________   ___  ________  _______   ___          
-|\   __  \    |\  \  /  /|    |\   ___  \|\  \|\   ____\|\  ___ \ |\  \         
-\ \  \|\ /_   \ \  \/  / /    \ \  \\ \  \ \  \ \  \___|\ \   __/|\ \  \        
- \ \   __  \   \ \    / /      \ \  \\ \  \ \  \ \  \  __\ \  \_|/_\ \  \       
-  \ \  \|\  \   \/  /  /        \ \  \\ \  \ \  \ \  \|\  \ \  \_|\ \ \  \____  
-   \ \_______\__/  / /           \ \__\\ \__\ \__\ \_______\ \_______\ \_______\
-    \|_______|\___/ /             \|__| \|__|\|__|\|_______|\|_______|\|_______|
-             \|___|/                                                            
-                                                                                
+- Interactive animations and sound                    
                                                                                 
 
