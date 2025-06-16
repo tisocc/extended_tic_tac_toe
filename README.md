@@ -23,15 +23,15 @@ A modern, extended version of Tic Tac Toe on a 5x5 grid — with support for:
 - Score tracking
 - Interactive animations and sound
 
-## 🚀 Live Demo
 
-👉 [Click here to play](https://tisocc.github.io/extended_tic_tac_toe/)
+ ________      ___    ___      ________   ___  ________  _______   ___          
+|\   __  \    |\  \  /  /|    |\   ___  \|\  \|\   ____\|\  ___ \ |\  \         
+\ \  \|\ /_   \ \  \/  / /    \ \  \\ \  \ \  \ \  \___|\ \   __/|\ \  \        
+ \ \   __  \   \ \    / /      \ \  \\ \  \ \  \ \  \  __\ \  \_|/_\ \  \       
+  \ \  \|\  \   \/  /  /        \ \  \\ \  \ \  \ \  \|\  \ \  \_|\ \ \  \____  
+   \ \_______\__/  / /           \ \__\\ \__\ \__\ \_______\ \_______\ \_______\
+    \|_______|\___/ /             \|__| \|__|\|__|\|_______|\|_______|\|_______|
+             \|___|/                                                            
+                                                                                
+                                                                                
 
-## 📦 Installation
-
-To run it locally:
-
-```bash
-git clone https://github.com/tisocc/extended_tic_tac_toe.git
-cd extended_tic_tac_toe
-open index.html
