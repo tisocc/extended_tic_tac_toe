@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Extended Tic Tac Toe – 5x5</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
+      color: #333;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.4s, color 0.4s;
+    }
+
+    .dark-mode {
+      background-color: #222;
+      color: #f0f0f0;
+    }
+
+    h1 {
+      margin: 20px 0;
+    }
+
+    .scoreboard {
+      margin: 10px;
+      font-size: 18px;
+    }
+
+    .controls {
+      margin: 15px;
+    }
+
+    .controls button {
+      margin: 0 5px;
+    }
+
+    #gameBoard {
+      display: grid;
+      grid-template-columns: repeat(5, 80px);
+      grid-template-rows: repeat(5, 80px);
+      gap: 5px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+
+    .cell {
+      background-color: white;
+      border: 2px solid #444;
+      font-size: 50px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.3s, box-shadow 0.3s;
+      user-select: none;
+    }
+
+    .cell:hover {
+      background-color: #e0f7e0;
+      box-shadow: 0 0 10px #4CAF50;
+    }
+
+    .cell.taken {
+      cursor: not-allowed;
+      background-color: #ccc;
+    }
+
+    .cell.x {
+      color: blue;
+    }
+
+    .cell.o {
+      color: red;
+    }
+
+    .status {
+      font-size: 18px;
+      margin: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .dark-mode .cell {
+      background-color: #333;
+      border: 1px solid #777;
+      color: white;
+    }
+
+    .dark-mode .cell:hover {
+      background-color: #444;
+    }
+
+    /* Improved visibility of X and O colors in dark mode */
+    .dark-mode .cell.x {
+      color: #3399ff; /* lighter blue */
+    }
+
+    .dark-mode .cell.o {
+      color: #ff6666; /* lighter red */
+    }
+
+    .win-banner {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #4CAF50;
+      color: white;
+      padding: 30px 60px;
+      font-size: 28px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      z-index: 9999;
+      opacity: 0;
+      animation: popIn 0.6s forwards;
+    }
+
+    @keyframes popIn {
+      0% {
+        transform: translate(-50%, -60%) scale(0.8);
+        opacity: 0;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+      }
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Tic Tac Toe 5x5</h1>
+
+  <div class="controls">
+    <button onclick="resetGame()">🔄 New Game</button>
+    <button onclick="toggleDarkMode()">🌗 Dark Mode</button>
+    <button onclick="setMode('player')">👥 2 Players</button>
+    <button onclick="setMode('bot')">🤖 Play Against Bot</button>
+  </div>
+
+  <div class="scoreboard">
+    🔵 Player X: <span id="scoreX">0</span> |
+    🔴 Player O: <span id="scoreO">0</span>
+  </div>
+
+  <div class="status" id="statusText">Player X's turn</div>
+
+  <div id="gameBoard"></div>
+
+  <div id="winBanner" class="win-banner hidden">
+    🎉 Player <span id="winnerName"></span> wins!
+  </div>
+
+  <audio id="clickSound" src="https://freesound.org/data/previews/256/256113_3263906-lq.mp3"></audio>
+  <audio id="winSound" src="https://freesound.org/data/previews/276/276020_5123851-lq.mp3"></audio>
+
+  <script>
+    const SIZE = 5;
+    const WIN_LENGTH = 5;
+    const board = Array(SIZE * SIZE).fill("");
+    const letters = ["A", "B", "C", "D", "E"];
+
+    let currentPlayer = 'X';
+    let scores = { X: 0, O: 0 };
+    let gameActive = true;
+    let gameMode = 'player';
+
+    const gameBoard = document.getElementById('gameBoard');
+    const statusText = document.getElementById('statusText');
+    const scoreX = document.getElementById('scoreX');
+    const scoreO = document.getElementById('scoreO');
+    const clickSound = document.getElementById('clickSound');
+    const winSound = document.getElementById('winSound');
+    const winBanner = document.getElementById('winBanner');
+    const winnerName = document.getElementById('winnerName');
+
+    function playSound(sound) {
+      sound.currentTime = 0;
+      sound.play();
+    }
+
+    function createBoard() {
+      gameBoard.innerHTML = "";
+      board.forEach((cell, index) => {
+        const div = document.createElement('div');
+        div.classList.add('cell');
+        div.setAttribute('data-index', index);
+        const row = Math.floor(index / SIZE);
+        const col = index % SIZE;
+        if (!cell) {
+          div.textContent = `${letters[row]}${col + 1}`;
+          div.style.color = '#888'; // coordinates in gray tone
+        } else {
+          div.textContent = cell;
+          div.classList.add('taken');
+          div.classList.add(cell.toLowerCase());
+          div.style.color = ''; // override gray color for X/O
+        }
+        div.addEventListener('click', handleCellClick);
+        gameBoard.appendChild(div);
+      });
+    }
+
+    function handleCellClick(e) {
+      if (!gameActive) return;
+      if (gameMode === 'bot' && currentPlayer === 'O') return; // Bot's turn, no input allowed
+
+      const index = parseInt(e.currentTarget.getAttribute('data-index'));
+      if (board[index]) return;
+
+      makeMove(index);
+
+      if (gameMode === 'bot' && gameActive && currentPlayer === 'O') {
+        setTimeout(botMove, 300);
+      }
+    }
+
+    function makeMove(index) {
+      board[index] = currentPlayer;
+      updateCell(index);
+      playSound(clickSound);
+
+      if (checkWin(index)) {
+        statusText.textContent = `🎉 Player ${currentPlayer} wins!`;
+        winnerName.textContent = currentPlayer;
+        winBanner.classList.remove('hidden');
+        scores[currentPlayer]++;
+        updateScores();
+        gameActive = false;
+        playSound(winSound);
+      } else if (!board.includes("")) {
+        statusText.textContent = "🤝 Draw!";
+        gameActive = false;
+      } else {
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        statusText.textContent = `Player ${currentPlayer}'s turn`;
+      }
+    }
+
+    function updateCell(index) {
+      const cell = gameBoard.children[index];
+      cell.textContent = board[index];
+      cell.classList.add('taken');
+      cell.classList.remove('x', 'o');
+      cell.classList.add(board[index].toLowerCase());
+      cell.style.color = ''; // override gray color for coordinates
+    }
+
+    function updateScores() {
+      scoreX.textContent = scores['X'];
+      scoreO.textContent = scores['O'];
+    }
+
+    function resetGame() {
+      for (let i = 0; i < board.length; i++) board[i] = "";
+      currentPlayer = 'X';
+      gameActive = true;
+      statusText.textContent = `Player ${currentPlayer}'s turn`;
+      winBanner.classList.add('hidden');
+      createBoard();
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    function setMode(mode) {
+      gameMode = mode;
+      resetGame();
+    }
+
+    // Checks if the player who moved at index has won
+    function checkWin(index) {
+      const directions = [
+        { dx: 1, dy: 0 },
+        { dx: 0, dy: 1 },
+        { dx: 1, dy: 1 },
+        { dx: 1, dy: -1 }
+      ];
+
+      const row = Math.floor(index / SIZE);
+      const col = index % SIZE;
+
+      for (const { dx, dy } of directions) {
+        let count = 1;
+
+        for (let step = 1; step < WIN_LENGTH; step++) {
+          const r = row + dy * step;
+          const c = col + dx * step;
+          if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) break;
+          if (board[r * SIZE + c] === currentPlayer) count++;
+          else break;
+        }
+
+        for (let step = 1; step < WIN_LENGTH; step++) {
+          const r = row - dy * step;
+          const c = col - dx * step;
+          if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) break;
+          if (board[r * SIZE + c] === currentPlayer) count++;
+          else break;
+        }
+
+        if (count >= WIN_LENGTH) return true;
+      }
+
+      return false;
+    }
+
+    // ----- Minimax with Alpha-Beta pruning for Bot -----
+    function botMove() {
+      if (!gameActive) return;
+
+      const bestMove = minimax(board, 'O', -Infinity, Infinity, 3); 
+      // 3 means search depth of 3 (performance vs strength)
+      makeMove(bestMove.index);
+    }
+
+    // Evaluates the current board for Minimax
+    function evaluateBoard(bd) {
+      // Evaluation function:
+      // +100000 for O (Bot) win, -100000 for X (Human) win
+      // +10 / -10 for 4 in a row, +5/-5 for 3 in a row etc.
+      // For short demo we use simple:
+
+      if (isWinForPlayer(bd, 'O')) return 100000;
+      if (isWinForPlayer(bd, 'X')) return -100000;
+
+      // Optional: can insert complex heuristic here, but for now 0:
+      return 0;
+    }
+
+    // Checks if player has won (across entire board)
+    function isWinForPlayer(bd, player) {
+      // Same logic as checkWin, but for entire board
+      // Goes through all cells looking for 5 in a row
+
+      for (let i = 0; i < bd.length; i++) {
+        if (bd[i] !== player) continue;
+        const row = Math.floor(i / SIZE);
+        const col = i % SIZE;
+
+        const directions = [
+          { dx: 1, dy: 0 },
+          { dx: 0, dy: 1 },
+          { dx: 1, dy: 1 },
+          { dx: 1, dy: -1 }
+        ];
+
+        for (const { dx, dy } of directions) {
+          let count = 1;
+
+          for (let step = 1; step < WIN_LENGTH; step++) {
+            const r = row + dy * step;
+            const c = col + dx * step;
+            if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) break;
+            if (bd[r * SIZE + c] === player) count++;
+            else break;
+          }
+
+          for (let step = 1; step < WIN_LENGTH; step++) {
+            const r = row - dy * step;
+            const c = col - dx * step;
+            if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) break;
+            if (bd[r * SIZE + c] === player) count++;
+            else break;
+          }
+
+          if (count >= WIN_LENGTH) return true;
+        }
+      }
+
+      return false;
+    }
+
+    function minimax(bd, player, alpha, beta, depth) {
+      const opponent = player === 'X' ? 'O' : 'X';
+
+      if (isWinForPlayer(bd, 'O')) return { score: 100000 };
+      if (isWinForPlayer(bd, 'X')) return { score: -100000 };
+      if (!bd.includes("") || depth === 0) return { score: evaluateBoard(bd) };
+
+      let bestMove = { index: -1 };
+      if (player === 'O') {
+        // Maximizer
+        let maxEval = -Infinity;
+        for (let i = 0; i < bd.length; i++) {
+          if (bd[i] === "") {
+            bd[i] = player;
+            let evalObj = minimax(bd, opponent, alpha, beta, depth -1);
+            bd[i] = "";
+            if (evalObj.score > maxEval) {
+              maxEval = evalObj.score;
+              bestMove = { index: i, score: maxEval };
+            }
+            alpha = Math.max(alpha, evalObj.score);
+            if (beta <= alpha) break; // Beta cutoff
+          }
+        }
+        return bestMove;
+      } else {
+        // Minimizer
+        let minEval = Infinity;
+        for (let i = 0; i < bd.length; i++) {
+          if (bd[i] === "") {
+            bd[i] = player;
+            let evalObj = minimax(bd, opponent, alpha, beta, depth -1);
+            bd[i] = "";
+            if (evalObj.score < minEval) {
+              minEval = evalObj.score;
+              bestMove = { index: i, score: minEval };
+            }
+            beta = Math.min(beta, evalObj.score);
+            if (beta <= alpha) break; // Alpha cutoff
+          }
+        }
+        return bestMove;
+      }
+    }
+
+    // Start the game
+    createBoard();
+  </script>
+</body>
+</html>
